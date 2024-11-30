@@ -36,8 +36,9 @@ services:
       - JWT_SECRET=bd45e580208b7f1a0f5117677d260b7a06de3eedee79d03bf505ccda316bdcf8
       - JWT_EXPIRES_IN=1d
       - PRISMA_MIGRATION_NAME=init
+      - PORT=4000
     ports:
-      - "3000:3000"
+      - "4000:4000"
     volumes:
       - ./backend:/usr/src/app
       - /usr/src/app/node_modules
@@ -55,16 +56,16 @@ services:
     container_name: chemist_frontend
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=http://localhost:3000/api
+      - NEXT_PUBLIC_API_URL=http://localhost:4000/api
       - NEXT_TELEMETRY_DISABLED=1
     ports:
-      - "4000:4000"
+      - "3000:3000"
     depends_on:
       - backend
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "wget", "--spider", "http://localhost:4000"]
+      test: ["CMD", "wget", "--spider", "http://localhost:3000"]
       interval: 10s
       timeout: 5s
       retries: 3
