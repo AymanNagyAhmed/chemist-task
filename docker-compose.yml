@@ -1,93 +1,110 @@
 version: '3.8'
+
 services:
   mysql:
-    image: mysql:8.0
-    container_name: chemist_task_db
+    image: mysql:latest
+    container_name: chemist_db
     environment:
       MYSQL_ROOT_PASSWORD: '@12345Admin'
-      MYSQL_DATABASE: 'chemist_task_db'
+      MYSQL_DATABASE: 'chemist_db'
       MYSQL_USER: 'admin'
       MYSQL_PASSWORD: '@12345Admin'
     ports:
       - "3307:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - chemist_mysql_vol:/var/lib/mysql
     networks:
-      - app-network
+      - chemist_network
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: always
 
-  backend:
-    build: 
+  chemist-backend:
+    build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
+    image: chemist-backend-img:latest
     container_name: chemist_backend
-    environment:
-      - NODE_ENV=development
-      - DB_HOST=mysql
-      - DB_PORT=3306
-      - DB_NAME=chemist_task_db
-      - DB_USER=admin
-      - DB_PASSWORD=@12345Admin
-      - DATABASE_URL=mysql://admin:@12345Admin@mysql:3306/chemist_task_db
-      - JWT_SECRET=bd45e580208b7f1a0f5117677d260b7a06de3eedee79d03bf505ccda316bdcf8
-      - JWT_EXPIRES_IN=1d
-      - PRISMA_MIGRATION_NAME=init
-      - PORT=4000
+    volumes:
+      - ./backend:/app
+      - chemist_backend_node_modules:/app/node_modules
+    networks:
+      - chemist_network
     ports:
       - "4000:4000"
-    volumes:
-      - ./backend:/usr/src/app
-      - /usr/src/app/node_modules
+    env_file:
+      - ./backend/.env
     depends_on:
       mysql:
         condition: service_healthy
-    networks:
-      - app-network
-    command: ["./startup.sh"]
+    command: sh -c "
+      npx prisma generate &&
+      npx prisma migrate deploy &&
+      npm run prisma:seed &&
+      npm run start:dev"
+    restart: always
+    environment:
+      - DB_HOST=mysql
 
-  frontend:
+  chemist-frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
+    image: chemist-frontend-img:latest
     container_name: chemist_frontend
-    environment:
-      - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=http://localhost:4000/api
-      - NEXT_TELEMETRY_DISABLED=1
+    env_file:
+      - ./frontend/.env
     ports:
       - "3000:3000"
     depends_on:
-      - backend
+      - chemist-backend
+    volumes:
+      - ./frontend:/app
+      - chemist_frontend_node_modules:/app/node_modules
+      - chemist_frontend_vol:/app/.next
     networks:
-      - app-network
+      - chemist_network
     healthcheck:
       test: ["CMD", "wget", "--spider", "http://localhost:3000"]
       interval: 10s
       timeout: 5s
       retries: 3
+    command: sh -c "npm run start:dev"
+    restart: always
 
   phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    container_name: chemist_phpmyadmin
+    image: phpmyadmin:latest
+    container_name: chemist_pma
     environment:
       PMA_HOST: mysql
       PMA_PORT: 3306
-      PMA_ARBITRARY: 1
+      PMA_USER: admin
+      PMA_PASSWORD: '@12345Admin'
       MYSQL_ROOT_PASSWORD: '@12345Admin'
+      PMA_ARBITRARY: 1
+      UPLOAD_LIMIT: 700M
     ports:
       - "8080:80"
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     networks:
-      - app-network
-
-networks:
-  app-network:
-    driver: bridge
+      - chemist_network
+    restart: always
 
 volumes:
-  mysql_data: 
+  chemist_mysql_vol:
+    name: chemist_mysql_vol
+  chemist_backend_node_modules:
+    name: chemist_backend_node_modules
+  chemist_frontend_node_modules:
+    name: chemist_frontend_node_modules
+  chemist_frontend_vol:
+    name: chemist_frontend_vol
+
+networks:
+  chemist_network:
+    driver: bridge

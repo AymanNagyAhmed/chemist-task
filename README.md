@@ -1,46 +1,49 @@
-## Reposatories
-- Frontend [Reposatory](https://github.com/AymanNagyAhmed/chemist-task-frontend)
-
-- Backend [Repository](https://github.com/AymanNagyAhmed/chemist-task-backend)
+## Repositories
+- [Frontend Repository](https://github.com/AymanNagyAhmed/chemist-task-frontend)
+- [Backend Repository](https://github.com/AymanNagyAhmed/chemist-task-backend)
+- [Install using docker](https://github.com/AymanNagyAhmed/chemist-task)
+- [Postman Collection](https://github.com/AymanNagyAhmed/chemist-task-backend/blob/main/Chemist-Warehouses-task.postman_collection.json)
 
 ## Prerequisites
-- Node.js (v22.11.0)
-- MySQL Server
-- jest
+- Docker & docker-compose
 
-## Frontend Installation
-### Local Development Setup
-1. Clone the repository
-2. copy .env.dev to .env
-3. npm install
-4. npm run start:dev
-5. visit "localhost:3000"
+## Installation using Docker
 
+```
+task
+├── docker-compose.yml
+├── backend
+│   └── Dockerfile.dev
+└── frontend
+    └── Dockerfile.dev
+```
 
-## Backend Installation
+Required files:
+- docker-compose.yml ([download](https://github.com/AymanNagyAhmed/chemist-task/blob/main/docker-compose.yml))
+- backend/Dockerfile.dev ([download](https://github.com/AymanNagyAhmed/chemist-task-backend/blob/main/Dockerfile))
+- frontend/Dockerfile.dev ([download](https://github.com/AymanNagyAhmed/chemist-task-frontend/blob/main/Dockerfile))
 
-## Postman Collection 
-[Postman Collection](./Chemist-Warehouses-task.postman_collection.json)
+Steps:
+1. Make sure you follow the correct folder structure
+2. Make sure you copied .env.dev to .env
+3. Run this command:
+```bash
+docker-compose up -d --build
+```
 
-## Database Configuration
-- Server: MySQL
-- Host: localhost
-- Port: 3306
-- Username: admin
-- Password: @12345Admin
+### PhpMyAdmin
+```
+URL: http://localhost:8080
+Server: mysql
+Username: admin
+Password: @12345Admin
+```
 
-## Installation
+### Backend
+- API URL: http://localhost:4000/api
+- [Postman Collection](https://github.com/AymanNagyAhmed/chemist-task-backend/blob/main/Chemist-Warehouses-task.postman_collection.json)
 
-### Local Development Setup
-
-1. Clone the repository
-2. copy .env.dev to .env
-3. npm install
-4. npm run prisma:generate
-5. npm run prisma:migrate
-6. npm run test
-7. npm run start:dev
-8. visit "localhost:4000"
-
-8. visit "localhost:4000"
- 
+### Frontend
+```
+http://localhost:3000
+```
